@@ -1,9 +1,9 @@
 package main
 
-import(
-    "fmt"
+import (
+	"fmt"
 )
 
 func main() {
-    fmt.Println("Words loader for anki will be here some day")
+	fmt.Println("Words loader for anki will be here some day")
 }
