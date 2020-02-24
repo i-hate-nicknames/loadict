@@ -1,4 +1,4 @@
-package english
+package main
 
 type response struct {
 	results []*Result
