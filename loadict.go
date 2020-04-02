@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -22,6 +21,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	marshaled, _ := json.MarshalIndent(response, "", "    ")
-	fmt.Println(string(marshaled))
+	// marshaled, _ := json.MarshalIndent(response, "", "    ")
+	// fmt.Println(string(marshaled))
+	text, err := renderCard(response)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(text)
 }
