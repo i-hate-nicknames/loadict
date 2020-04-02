@@ -1,40 +1,36 @@
 package main
 
-type response struct {
-	results []*Result
+type Response struct {
+	Results []*Result
 }
 
 type Result struct {
 	LexicalEntries []*LexicalEntry
 	Word           string
+	Language       string
 }
 
 type LexicalEntry struct {
-	LexicalCategory string
+	LexicalCategory *SingleText
 	Entries         []*Entry
 	Pronunciations  []*Pronunciation
 }
 
 type Entry struct {
-	GrammaticalFeatures []*GrammaticalFeature
-	Senses              []*Sense
-}
-
-type GrammaticalFeature struct {
-	Text string
-	Type string
+	Senses []*Sense
 }
 
 type Sense struct {
 	Definitions []string
-	Examples    []*Example
-}
-
-type Example struct {
-	Text string
+	Examples    []*SingleText
 }
 
 type Pronunciation struct {
 	PhoneticSpelling string
 	Dialects         []string
+	PhoneticNotation string
+}
+
+type SingleText struct {
+	Text string
 }

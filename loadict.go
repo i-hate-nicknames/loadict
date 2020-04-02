@@ -17,6 +17,9 @@ func main() {
 	if appId == "" || appKey == "" {
 		log.Fatal("Provide app id and app key in .env file")
 	}
-	fmt.Println("App id: " + appId)
-	fmt.Println("Words loader for anki will be here some day")
+	response, err := fetchWord(appId, appKey, "entail")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%v\n", response)
 }
