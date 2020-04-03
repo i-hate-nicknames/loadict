@@ -10,7 +10,6 @@ import (
 const urlTemplate = "https://od-api.oxforddictionaries.com/api/v2/entries/en-us/%s?strictMatch=false&fields=definitions%%2Cpronunciations%%2Cexamples"
 
 func fetchWord(appId, appKey, word string) (*Response, error) {
-	var response Response
 	client := &http.Client{}
 	req, err := assembleRequest(appId, appKey, word)
 	if err != nil {
@@ -26,6 +25,7 @@ func fetchWord(appId, appKey, word string) (*Response, error) {
 	}
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
+	var response Response
 	err = decoder.Decode(&response)
 	if err != nil {
 		return nil, err
