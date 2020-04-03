@@ -27,12 +27,20 @@ func main() {
 	go renderWords(fetched, rendered, errors)
 	go exportWords(file, rendered, results, errors)
 
+	// todo: sending words to source channel blocks,
+	// so do it in a separate goroutine
 	words := []string{"entail", "whirlwind", "smart"}
 	for _, word := range words {
 		source <- word
 	}
 	close(source)
 
+	// todo: get rid of errors channel and just log errors
+	// from the goroutines
+
+	// todo: get rid of export goroutine, and just collect
+	// rendered cards here, then write in a file with a single
+	// write
 	n := 0
 	for n < len(words) {
 		select {
