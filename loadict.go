@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/csv"
-	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -15,46 +15,39 @@ func main() {
 
 	source := make(chan string, 0)
 	fetched := make(chan *Response, 0)
-	errors := make(chan error, 0)
 	rendered := make(chan *ExportCard, 0)
-	results := make(chan bool, 0)
 
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatal("Cannot create file")
 	}
-	go fetchWords(1, source, fetched, errors)
-	go renderWords(fetched, rendered, errors)
-	go exportWords(file, rendered, results, errors)
+	go fetchWords(10, source, fetched)
+	go renderWords(fetched, rendered)
 
-	// todo: sending words to source channel blocks,
-	// so do it in a separate goroutine
-	words := []string{"entail", "whirlwind", "smart"}
-	for _, word := range words {
-		source <- word
-	}
-	close(source)
+	words := []string{"entail", "whirlwind", "smart", "entail", "whirlwind", "smart"}
+	// we have to put words into source in a different goroutine because initial capacity
+	// is 0, and we may get blocked by put
+	// Alternatively we could've set channel capacity to the number of words
+	go func() {
+		for _, word := range words {
+			source <- word
+		}
+		close(source)
+	}()
 
-	// todo: get rid of errors channel and just log errors
-	// from the goroutines
+	writer := csv.NewWriter(file)
 
-	// todo: get rid of export goroutine, and just collect
-	// rendered cards here, then write in a file with a single
-	// write
-	n := 0
-	for n < len(words) {
-		select {
-		case <-results:
-			log.Println("exported a word!")
-		case err := <-errors:
+	for card := range rendered {
+		err := writer.Write([]string{card.word, card.card})
+		if err != nil {
 			log.Println(err)
 		}
-		n++
 	}
+	writer.Flush()
 
 }
 
-func fetchWords(parallelism int, in <-chan string, out chan<- *Response, errors chan<- error) {
+func fetchWords(concurrency int, in <-chan string, out chan<- *Response) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -63,72 +56,39 @@ func fetchWords(parallelism int, in <-chan string, out chan<- *Response, errors 
 	if appID == "" || appKey == "" {
 		log.Fatal("Provide app id and app key in .env file")
 	}
-	for word := range in {
-		log.Println("Fetching ", word)
-		response, err := fetchWord(appID, appKey, word)
-		if err != nil {
-			errors <- err
-			continue
-		}
-		out <- response
+	var wg sync.WaitGroup
+	wg.Add(concurrency)
+	for i := 0; i < concurrency; i++ {
+		go func() {
+			for word := range in {
+				log.Println("Fetching ", word)
+				response, err := fetchWord(appID, appKey, word)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				out <- response
+			}
+			wg.Done()
+		}()
 	}
-	// var wg sync.WaitGroup
-	// wg.Add(parallelism)
-	// for i := 0; i < parallelism; i++ {
-	// 	go func() {
-	// 		for word := range in {
-	// 			log.Println("Fetching ", word)
-	// 			response, err := fetchWord(appID, appKey, word)
-	// 			if err != nil {
-	// 				errors <- err
-	// 				continue
-	// 			}
-	// 			out <- response
-	// 		}
-	// 		wg.Done()
-	// 	}()
-	// }
-	// wg.Wait()
+	wg.Wait()
 	close(out)
 }
 
-func renderWords(in <-chan *Response, out chan<- *ExportCard, errors chan<- error) {
+func renderWords(in <-chan *Response, out chan<- *ExportCard) {
 	for wordResponse := range in {
-		log.Println("Rendering", wordResponse.Results[0].Word)
+		log.Println("Rendering", wordResponse.word)
 		card, err := renderCard(wordResponse)
 		if err != nil {
-			errors <- err
+			log.Println(err)
 			continue
 		}
-		out <- &ExportCard{word: wordResponse.Results[0].Word, card: card}
+		out <- &ExportCard{word: wordResponse.word, card: card}
 	}
 	close(out)
-}
-
-func exportWords(writer io.Writer, in <-chan *ExportCard, results chan<- bool, errors chan<- error) {
-	for card := range in {
-		log.Println("Exporting ", card.word)
-		err := export(writer, card)
-		if err != nil {
-			errors <- err
-			continue
-		}
-		results <- true
-	}
-	close(results)
-	close(errors)
 }
 
 type ExportCard struct {
 	word, card string
-}
-
-func export(w io.Writer, card *ExportCard) error {
-	writer := csv.NewWriter(w)
-	err := writer.Write([]string{card.word, card.card})
-	if err != nil {
-		return err
-	}
-	writer.Flush()
-	return nil
 }
