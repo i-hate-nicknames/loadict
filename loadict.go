@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// todo: read from arguments
-	words := []string{"entail", "whirlwind", "smart", "entail", "whirlwind", "smart"}
+	words := []string{"object"}
 
 	source := make(chan string, len(words))
 	fetched := make(chan *Response, 0)
@@ -56,7 +56,6 @@ func main() {
 }
 
 func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan<- *Response) {
-
 	var wg sync.WaitGroup
 	wg.Add(concurrency)
 	for i := 0; i < concurrency; i++ {
@@ -79,13 +78,13 @@ func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan
 
 func renderWords(in <-chan *Response, out chan<- *ExportCard) {
 	for wordResponse := range in {
-		log.Println("Rendering", wordResponse.word)
+		log.Println("Rendering", wordResponse.Word)
 		card, err := renderCard(wordResponse)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		out <- &ExportCard{word: wordResponse.word, card: card}
+		out <- &ExportCard{word: wordResponse.Word, card: card}
 	}
 	close(out)
 }

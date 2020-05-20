@@ -2,7 +2,7 @@ package main
 
 type Response struct {
 	Results []*Result
-	word    string
+	Word    string
 }
 
 type Result struct {
