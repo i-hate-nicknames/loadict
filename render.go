@@ -11,7 +11,6 @@ const card = `
 <div>
 	<div>Word: {{.Word}}</div>
 	<div>Language: {{.Language}}</div>
-	
 </div>
 {{end}}
 `

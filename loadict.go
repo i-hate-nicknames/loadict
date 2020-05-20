@@ -10,18 +10,29 @@ import (
 )
 
 const fileName = "cards.csv"
+const concurrentFetches = 10
 
 func main() {
-
-	source := make(chan string, 0)
-	fetched := make(chan *Response, 0)
-	rendered := make(chan *ExportCard, 0)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	appID, appKey := os.Getenv("APP_ID"), os.Getenv("APP_KEY")
+	if appID == "" || appKey == "" {
+		log.Fatal("Provide app id and app key in .env file")
+	}
 
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatal("Cannot create file")
 	}
-	go fetchWords(10, source, fetched)
+
+	source := make(chan string, 0)
+	fetched := make(chan *Response, 0)
+	rendered := make(chan *ExportCard, 0)
+
+	fetcher := MakeFetcher(appID, appKey)
+	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
 
 	words := []string{"entail", "whirlwind", "smart", "entail", "whirlwind", "smart"}
@@ -47,22 +58,15 @@ func main() {
 
 }
 
-func fetchWords(concurrency int, in <-chan string, out chan<- *Response) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	appID, appKey := os.Getenv("APP_ID"), os.Getenv("APP_KEY")
-	if appID == "" || appKey == "" {
-		log.Fatal("Provide app id and app key in .env file")
-	}
+func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan<- *Response) {
+
 	var wg sync.WaitGroup
 	wg.Add(concurrency)
 	for i := 0; i < concurrency; i++ {
 		go func() {
 			for word := range in {
 				log.Println("Fetching ", word)
-				response, err := fetchWord(appID, appKey, word)
+				response, err := fetcher(word)
 				if err != nil {
 					log.Println(err)
 					continue
