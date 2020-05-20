@@ -27,7 +27,10 @@ func main() {
 		log.Fatal("Cannot create file")
 	}
 
-	source := make(chan string, 0)
+	// todo: read from arguments
+	words := []string{"entail", "whirlwind", "smart", "entail", "whirlwind", "smart"}
+
+	source := make(chan string, len(words))
 	fetched := make(chan *Response, 0)
 	rendered := make(chan *ExportCard, 0)
 
@@ -35,16 +38,10 @@ func main() {
 	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
 
-	words := []string{"entail", "whirlwind", "smart", "entail", "whirlwind", "smart"}
-	// we have to put words into source in a different goroutine because initial capacity
-	// is 0, and we may get blocked by put
-	// Alternatively we could've set channel capacity to the number of words
-	go func() {
-		for _, word := range words {
-			source <- word
-		}
-		close(source)
-	}()
+	for _, word := range words {
+		source <- word
+	}
+	close(source)
 
 	writer := csv.NewWriter(file)
 
