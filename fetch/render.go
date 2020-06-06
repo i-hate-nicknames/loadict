@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-const card = `
+const cardTemplate = `
 <div class="word"><span class="type">{{.Word}}<span></div>
 {{range .Results}}
 {{range .LexicalEntries}}
@@ -46,7 +46,7 @@ const card = `
 `
 
 func renderCard(data *Response) (string, error) {
-	tmpl, err := template.New("anki").Parse(card)
+	tmpl, err := template.New("anki").Parse(cardTemplate)
 	if err != nil {
 		return "", err
 	}

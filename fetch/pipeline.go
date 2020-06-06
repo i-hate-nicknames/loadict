@@ -3,16 +3,16 @@ package fetch
 import (
 	"log"
 	"sync"
+
+	"nvm.ga/loadict/card"
 )
 
 const concurrentFetches = 10
 
-// todo: return cards, get rid of ExportCard
-
-func FetchCards(words []string, fetcher WordFetcher) <-chan *ExportCard {
+func FetchCards(words []string, fetcher WordFetcher) <-chan *card.Card {
 	source := make(chan string, len(words))
 	fetched := make(chan *Response, 0)
-	rendered := make(chan *ExportCard, 0)
+	rendered := make(chan *card.Card, 0)
 
 	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
@@ -45,19 +45,16 @@ func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan
 	close(out)
 }
 
-func renderWords(in <-chan *Response, out chan<- *ExportCard) {
+func renderWords(in <-chan *Response, out chan<- *card.Card) {
 	for wordResponse := range in {
 		log.Println("Rendering", wordResponse.Word)
-		card, err := renderCard(wordResponse)
+		cardBack, err := renderCard(wordResponse)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		out <- &ExportCard{Word: wordResponse.Word, Card: card}
+		card := card.MakeCard(wordResponse.Word, cardBack)
+		out <- card
 	}
 	close(out)
-}
-
-type ExportCard struct {
-	Word, Card string
 }

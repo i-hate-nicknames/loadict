@@ -31,7 +31,7 @@ func generateCards(words []string, db *gorm.DB, fetcher fetch.WordFetcher) {
 	writer := csv.NewWriter(file)
 
 	for card := range rendered {
-		err := writer.Write([]string{card.Word, card.Card})
+		err := writer.Write([]string{card.Word, card.Back})
 		if err != nil {
 			log.Println(err)
 		}
