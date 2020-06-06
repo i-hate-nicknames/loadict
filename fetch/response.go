@@ -1,4 +1,4 @@
-package main
+package fetch
 
 type Response struct {
 	Results []*Result

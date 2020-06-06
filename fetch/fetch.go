@@ -1,4 +1,4 @@
-package main
+package fetch
 
 import (
 	"encoding/json"
@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-const urlTemplate = "https://od-api.oxforddictionaries.com/api/v2/entries/en-us/%s?strictMatch=false&fields=definitions%%2Cpronunciations%%2Cexamples"
+const urlTemplate = "https://od-api.oxforddictionaries.com/api/v2/entries/en-us/%s" +
+	"?strictMatch=false&fields=definitions%%2Cpronunciations%%2Cexamples"
 
 type WordFetcher func(word string) (*Response, error)
 

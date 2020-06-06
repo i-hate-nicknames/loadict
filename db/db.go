@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -10,11 +11,12 @@ import (
 const dbFile = "loadict.db"
 
 type Card struct {
-	ID    uint `gorm:"primary_key"`
-	Word string
-	Template string
-	
-	Items string
+	ID          uint `gorm:"primary_key"`
+	Word        string
+	Template    string
+	Created     *time.Time
+	LastFetched *time.Time
+	Items       string
 }
 
 func Connect() *gorm.DB {

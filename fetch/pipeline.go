@@ -1,44 +1,19 @@
-package main
+package fetch
 
 import (
-	"encoding/csv"
 	"log"
-	"os"
 	"sync"
-
-	"github.com/joho/godotenv"
-	"nvm.ga/loadict/db"
 )
 
-const fileName = "cards.csv"
 const concurrentFetches = 10
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	appID, appKey := os.Getenv("APP_ID"), os.Getenv("APP_KEY")
-	if appID == "" || appKey == "" {
-		log.Fatal("Provide app id and app key in .env file")
-	}
+// todo: return cards, get rid of ExportCard
 
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal("Cannot create file")
-	}
-
-	conn := db.Connect()
-	db.Migrate(conn)
-
-	// todo: read from arguments
-	words := []string{"object"}
-
+func FetchCards(words []string, fetcher WordFetcher) <-chan *ExportCard {
 	source := make(chan string, len(words))
 	fetched := make(chan *Response, 0)
 	rendered := make(chan *ExportCard, 0)
 
-	fetcher := MakeFetcher(appID, appKey)
 	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
 
@@ -46,17 +21,7 @@ func main() {
 		source <- word
 	}
 	close(source)
-
-	writer := csv.NewWriter(file)
-
-	for card := range rendered {
-		err := writer.Write([]string{card.word, card.card})
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	writer.Flush()
-
+	return rendered
 }
 
 func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan<- *Response) {
@@ -88,11 +53,11 @@ func renderWords(in <-chan *Response, out chan<- *ExportCard) {
 			log.Println(err)
 			continue
 		}
-		out <- &ExportCard{word: wordResponse.Word, card: card}
+		out <- &ExportCard{Word: wordResponse.Word, Card: card}
 	}
 	close(out)
 }
 
 type ExportCard struct {
-	word, card string
+	Word, Card string
 }
