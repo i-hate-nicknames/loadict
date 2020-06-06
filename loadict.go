@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/joho/godotenv"
+	"nvm.ga/loadict/db"
 )
 
 const fileName = "cards.csv"
@@ -26,6 +27,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot create file")
 	}
+
+	conn := db.Connect()
+	db.Migrate(conn)
 
 	// todo: read from arguments
 	words := []string{"object"}

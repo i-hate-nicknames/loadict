@@ -26,7 +26,7 @@ const card = `
 		</div>
 		<div class="examples">
 		{{range .Examples}}
-			<div class="examples">
+			<div class="example">
 				{{.Text}}
 			</div>
 		{{end}}

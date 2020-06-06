@@ -1,3 +1,4 @@
 .env
 fetch
 cards.csv
+loadict.db
