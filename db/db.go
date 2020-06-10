@@ -24,6 +24,16 @@ func LoadCards(db *gorm.DB) []*card.Card {
 	return cards
 }
 
+func SaveCards(db *gorm.DB, cards []*card.Card) error {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		for _, card := range cards {
+			tx.Create(card)
+		}
+		return nil
+	})
+	return err
+}
+
 func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&card.Card{})
 }

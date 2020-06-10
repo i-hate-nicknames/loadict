@@ -7,13 +7,14 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"nvm.ga/loadict/fetch"
+	"nvm.ga/loadict/card"
+	"nvm.ga/loadict/db"
 )
 
 // loadWords takes list of words from stdin, each word on its own line,
 // loads definitions of these words using dictionary API, generates
 // html card body using response data and saves these cards to the db
-func loadWords(db *gorm.DB) {
+func loadWords(conn *gorm.DB) {
 
 	fmt.Println("loading words")
 	err := godotenv.Load()
@@ -25,9 +26,10 @@ func loadWords(db *gorm.DB) {
 		log.Fatal("Provide app id and app key in .env file")
 	}
 
-	// todo: read from stdin
-	words := []string{"object", "curtail"}
-	fetcher := fetch.MakeFetcher(appID, appKey)
+	// todo: read words from stdin
+	// fixme: uncomment to use fetcher instead of dummy words
+	// words := []string{"object", "curtail"}
+	// fetcher := fetch.MakeFetcher(appID, appKey)
 
 	// todo: check which of the words are in the db, take them from there
 	// update last fetched field
@@ -35,9 +37,19 @@ func loadWords(db *gorm.DB) {
 	// todo: filter out those words that we have from words slice and
 	// fetch only those that we do not have yet
 
-	cards := fetch.FetchCards(words, fetcher)
+	// fixme: uncomment to use fetcher instead of dummy words
+	// cards := fetch.FetchCards(words, fetcher)
+
+	cards := make([]*card.Card, 0)
+	cards = append(cards, card.MakeCard("test", "test_back"))
+	cards = append(cards, card.MakeCard("test2", "test_back2"))
 
 	fmt.Printf("Fetched %d cards!\n", len(cards))
+
+	err = db.SaveCards(conn, cards)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// todo: merge cards together and save them to the db
 
 }
