@@ -18,8 +18,11 @@ func Connect() *gorm.DB {
 	return db
 }
 
-func LoadCards(db *gorm.DB) []*card.Card {
+// LoadCards loads at most num cards that have not yet been
+// exported
+func LoadCards(db *gorm.DB, num int) []*card.Card {
 	var cards []*card.Card
+	// todo: find at most num, add not exported constraint
 	db.Find(&cards)
 	return cards
 }
