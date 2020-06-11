@@ -11,8 +11,11 @@ const cardTemplate = `
 {{range .Results}}
 {{range .LexicalEntries}}
 <div class="lex-entry">
-
-	<div class="lex-category">{{ .LexicalCategory.Text }}</div>
+	<div class="pronunciation">
+	<span class="type">IPA: </span>
+	<span class="value">{{.RenderPronunciations}}<span>
+	</div>
+	<div class="lex-category">Type: {{ .LexicalCategory.Text }}</div>
 	<div class="entries">
 	{{range .Entries}}
 	{{range .Senses}}
@@ -25,6 +28,7 @@ const cardTemplate = `
 		{{end}}
 		</div>
 		<div class="examples">
+		<div><span class="type">Examples:</span></div>
 		{{range .Examples}}
 			<div class="example">
 				{{.Text}}
@@ -35,11 +39,6 @@ const cardTemplate = `
 	{{end}}
 	{{end}}
 	</div>
-	<div class="pronunciation">
-		<span class="type">IPA: </span>
-		<span class="value">{{.RenderPronunciations}}<span>
-	</div>
-
 </div>
 {{end}}
 {{end}}
@@ -57,6 +56,10 @@ func renderCard(data *Response) (string, error) {
 	}
 	return buf.String(), nil
 }
+
+// todo: check why IPA is not loaded
+
+// todo: add dot at the end of every example
 
 func (le *LexicalEntry) RenderPronunciations() string {
 	results := make([]string, 0)
