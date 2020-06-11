@@ -22,15 +22,14 @@ func Connect() *gorm.DB {
 // exported
 func LoadCards(db *gorm.DB, num int) []*card.Card {
 	var cards []*card.Card
-	// todo: find at most num, add not exported constraint
-	db.Find(&cards)
+	db.Where("exported = ?", false).Find(&cards).Limit(num)
 	return cards
 }
 
 func SaveCards(db *gorm.DB, cards []*card.Card) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		for _, card := range cards {
-			tx.Create(card)
+			tx.Save(card)
 		}
 		return nil
 	})

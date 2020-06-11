@@ -15,7 +15,7 @@ import (
 // Exported cards will be marked as such in the db and won't be
 // exported in future
 func exportCards(num int, conn *gorm.DB) {
-	fmt.Printf("Exporting %d words to %s\n", num, exportFile)
+	fmt.Printf("Exportinwg %d words to %s\n", num, exportFile)
 	file, err := os.Create(exportFile)
 	if err != nil {
 		log.Fatal("Cannot create file")
@@ -25,6 +25,10 @@ func exportCards(num int, conn *gorm.DB) {
 
 	cards := db.LoadCards(conn, num)
 
+	if len(cards) == 0 {
+		log.Fatal("There are no cards to be exported: load more words")
+	}
+
 	for _, card := range cards {
 		err := writer.Write([]string{card.Word, card.Back})
 		if err != nil {
@@ -33,6 +37,6 @@ func exportCards(num int, conn *gorm.DB) {
 		card.Exported = true
 	}
 	writer.Flush()
-
+	db.SaveCards(conn, cards)
 	// todo: save cards to the db to reflect that they have been exported
 }
