@@ -26,6 +26,12 @@ func LoadCards(db *gorm.DB, num int) []*card.Card {
 	return cards
 }
 
+func LoadCardsByWords(db *gorm.DB, words []string) []*card.Card {
+	var cards []*card.Card
+	db.Where("word IN (?)", words).Find(&cards)
+	return cards
+}
+
 func SaveCards(db *gorm.DB, cards []*card.Card) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		for _, card := range cards {

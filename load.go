@@ -10,6 +10,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"nvm.ga/loadict/card"
+	"nvm.ga/loadict/db"
 	"nvm.ga/loadict/fetch"
 )
 
@@ -30,28 +32,23 @@ func loadWords(conn *gorm.DB) {
 
 	words := readWords()
 	fetcher := fetch.MakeFetcher(appID, appKey)
+	existingCards := db.LoadCardsByWords(conn, words)
 
-	// todo: check which of the words are in the db, take them from there
-	// update last fetched field
+	wordsToFetch := filterExisting(words, existingCards)
 
-	// todo: filter out those words that we have from words slice and
-	// fetch only those that we do not have yet
+	if len(wordsToFetch) == 0 {
+		log.Fatal("All the words are already loaded")
+	}
 
-	log.Println("Loading the following words:", words)
-	cards := fetch.FetchCards(words, fetcher)
-
-	// cards := make([]*card.Card, 0)
-	// cards = append(cards, card.MakeCard("test", "test_back"))
-	// cards = append(cards, card.MakeCard("test2", "test_back2"))
+	log.Println("Loading the following words:", wordsToFetch)
+	cards := fetch.FetchCards(wordsToFetch, fetcher)
 
 	fmt.Printf("Fetched %d cards!\n", len(cards))
 
-	// err = db.SaveCards(conn, cards)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// todo: merge cards together and save them to the db
-
+	err = db.SaveCards(conn, cards)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func readWords() []string {
@@ -67,4 +64,18 @@ func readWords() []string {
 		}
 		words = append(words, strings.TrimSpace(word))
 	}
+}
+
+func filterExisting(words []string, existing []*card.Card) []string {
+	result := make([]string, 0)
+	existingMap := make(map[string]bool, 0)
+	for _, card := range existing {
+		existingMap[card.Word] = true
+	}
+	for _, word := range words {
+		if !existingMap[word] {
+			result = append(result, word)
+		}
+	}
+	return result
 }
