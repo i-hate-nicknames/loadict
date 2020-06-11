@@ -9,7 +9,7 @@ import (
 
 const concurrentFetches = 10
 
-func FetchCards(words []string, fetcher WordFetcher) <-chan *card.Card {
+func FetchCards(words []string, fetcher WordFetcher) []*card.Card {
 	source := make(chan string, len(words))
 	fetched := make(chan *Response, 0)
 	rendered := make(chan *card.Card, 0)
@@ -21,7 +21,13 @@ func FetchCards(words []string, fetcher WordFetcher) <-chan *card.Card {
 		source <- word
 	}
 	close(source)
-	return rendered
+
+	cards := make([]*card.Card, 0)
+	for card := range rendered {
+		log.Println("Fetched", card.Word)
+		cards = append(cards, card)
+	}
+	return cards
 }
 
 func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan<- *Response) {
@@ -30,7 +36,7 @@ func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan
 	for i := 0; i < concurrency; i++ {
 		go func() {
 			for word := range in {
-				log.Println("Fetching ", word)
+				log.Println("Fetching", word)
 				response, err := fetcher(word)
 				if err != nil {
 					log.Println(err)
@@ -47,7 +53,6 @@ func fetchWords(fetcher WordFetcher, concurrency int, in <-chan string, out chan
 
 func renderWords(in <-chan *Response, out chan<- *card.Card) {
 	for wordResponse := range in {
-		log.Println("Rendering", wordResponse.Word)
 		cardBack, err := renderCard(wordResponse)
 		if err != nil {
 			log.Println(err)

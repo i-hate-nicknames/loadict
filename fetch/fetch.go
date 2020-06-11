@@ -3,7 +3,6 @@ package fetch
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -24,7 +23,6 @@ func fetchWord(appId, appKey, word string) (*Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot intantiate http request: %s", err)
 	}
-	log.Println("performing request to " + req.RequestURI)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

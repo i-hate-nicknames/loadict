@@ -1,14 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"nvm.ga/loadict/card"
-	"nvm.ga/loadict/db"
+	"nvm.ga/loadict/fetch"
 )
 
 // loadWords takes list of words from stdin, each word on its own line,
@@ -26,10 +28,8 @@ func loadWords(conn *gorm.DB) {
 		log.Fatal("Provide app id and app key in .env file")
 	}
 
-	// todo: read words from stdin
-	// fixme: uncomment to use fetcher instead of dummy words
-	// words := []string{"object", "curtail"}
-	// fetcher := fetch.MakeFetcher(appID, appKey)
+	words := readWords()
+	fetcher := fetch.MakeFetcher(appID, appKey)
 
 	// todo: check which of the words are in the db, take them from there
 	// update last fetched field
@@ -37,19 +37,34 @@ func loadWords(conn *gorm.DB) {
 	// todo: filter out those words that we have from words slice and
 	// fetch only those that we do not have yet
 
-	// fixme: uncomment to use fetcher instead of dummy words
-	// cards := fetch.FetchCards(words, fetcher)
+	log.Println("Loading the following words:", words)
+	cards := fetch.FetchCards(words, fetcher)
 
-	cards := make([]*card.Card, 0)
-	cards = append(cards, card.MakeCard("test", "test_back"))
-	cards = append(cards, card.MakeCard("test2", "test_back2"))
+	// cards := make([]*card.Card, 0)
+	// cards = append(cards, card.MakeCard("test", "test_back"))
+	// cards = append(cards, card.MakeCard("test2", "test_back2"))
 
 	fmt.Printf("Fetched %d cards!\n", len(cards))
 
-	err = db.SaveCards(conn, cards)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = db.SaveCards(conn, cards)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// todo: merge cards together and save them to the db
 
+}
+
+func readWords() []string {
+	reader := bufio.NewReader(os.Stdin)
+	words := make([]string, 0)
+	for {
+		word, err := reader.ReadString('\n')
+		if err == io.EOF {
+			return words
+		}
+		if err != nil {
+			log.Fatalln("Cannot read words:", err.Error())
+		}
+		words = append(words, strings.TrimSpace(word))
+	}
 }

@@ -38,5 +38,4 @@ func exportCards(num int, conn *gorm.DB) {
 	}
 	writer.Flush()
 	db.SaveCards(conn, cards)
-	// todo: save cards to the db to reflect that they have been exported
 }
