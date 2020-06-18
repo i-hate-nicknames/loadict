@@ -14,11 +14,11 @@ type Result struct {
 type LexicalEntry struct {
 	LexicalCategory *SingleText
 	Entries         []*Entry
-	Pronunciations  []*Pronunciation
 }
 
 type Entry struct {
-	Senses []*Sense
+	Senses         []*Sense
+	Pronunciations []*Pronunciation
 }
 
 type Sense struct {
