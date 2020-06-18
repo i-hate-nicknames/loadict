@@ -3,11 +3,13 @@ package fetch
 import (
 	"log"
 	"sync"
+	"time"
 
 	"nvm.ga/loadict/card"
 )
 
 const concurrentFetches = 10
+const timeout = time.Second * 2
 
 func FetchCards(words []string, fetcher WordFetcher) []*card.Card {
 	source := make(chan string, len(words))
@@ -17,8 +19,13 @@ func FetchCards(words []string, fetcher WordFetcher) []*card.Card {
 	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
 
+	cardsEnqueued := 0
 	for _, word := range words {
+		if cardsEnqueued%concurrentFetches == 0 {
+			time.Sleep(timeout)
+		}
 		source <- word
+		cardsEnqueued++
 	}
 	close(source)
 
