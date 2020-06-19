@@ -1,6 +1,9 @@
 package card
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type Card struct {
 	ID       uint `gorm:"primary_key"`
@@ -12,5 +15,10 @@ type Card struct {
 }
 
 func MakeCard(word, back string) *Card {
-	return &Card{Word: word, Back: back, Created: time.Now(), Updated: time.Now()}
+	return &Card{
+		Word:    strings.ToLower(word),
+		Back:    back,
+		Created: time.Now(),
+		Updated: time.Now(),
+	}
 }
