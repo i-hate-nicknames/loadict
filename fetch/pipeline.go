@@ -9,7 +9,7 @@ import (
 )
 
 const concurrentFetches = 10
-const timeout = time.Second * 2
+const hitsPerMin = 60
 
 func FetchCards(words []string, fetcher WordFetcher) []*card.Card {
 	source := make(chan string, len(words))
@@ -19,13 +19,13 @@ func FetchCards(words []string, fetcher WordFetcher) []*card.Card {
 	go fetchWords(fetcher, concurrentFetches, source, fetched)
 	go renderWords(fetched, rendered)
 
-	cardsEnqueued := 0
+	cardsPut := 0
 	for _, word := range words {
-		if cardsEnqueued%concurrentFetches == 0 {
-			time.Sleep(timeout)
+		if cardsPut%hitsPerMin == 0 && cardsPut > 0 {
+			time.Sleep(1 * time.Minute)
 		}
 		source <- word
-		cardsEnqueued++
+		cardsPut++
 	}
 	close(source)
 
