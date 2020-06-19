@@ -16,6 +16,7 @@ var load = flag.Bool("load", false, "loads list of words and stores them locally
 var export = flag.Bool("export", false, "exports a number of card into csv file")
 var exportNumber = flag.Int("n", exportCardsNum, "number of cards to export, default 10")
 
+// todo: add hits limit depending on the api subscription plan (60 for free)
 // use n for loading too, to limit the number of cards loaded from the api
 // handle 403 errors in case we are making too many requests somehow
 // change load to "prefetch", change load flag so that it simply adds words
