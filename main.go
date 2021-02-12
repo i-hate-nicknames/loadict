@@ -27,6 +27,19 @@ var exportNumber = flag.Int("n", exportCardsNum, "number of cards to export, def
 // in pending state and let export to run "prefetch" for you
 // but, in case you want to prefetch your words
 
+// todo: use cobra for commands
+
+// add import command, accept newline separated list of words from stdin or kindle db
+// add blacklist command that disallows a word to be exported, and never tries to fetch it
+// add reset-export command that takes a list of words and marks them as not exported
+// add enqueue command that takes a list of words and adds them to the next export queue
+// add export command that exports to anki deck. Take words from queue first, then from the
+// regular word collection, provided word is not marked as already exported. Mark all successfully
+// exported words
+// mark words that were failed to fetch (404) to avoid refetching them the next export
+
+// implement kindle db import
+
 func main() {
 	flag.Parse()
 	if !*load && !*export {
