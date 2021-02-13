@@ -2,6 +2,7 @@ package oxford
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -35,6 +36,8 @@ func (f Loader) GetRPM() int {
 	return hitsPerMin
 }
 
+var ErrNotFound = errors.New("word not found")
+
 func (f Loader) fetchWord(word string) (*Response, error) {
 	client := &http.Client{}
 	req, err := assembleRequest(f.AppID, f.AppKey, word)
@@ -45,8 +48,11 @@ func (f Loader) fetchWord(word string) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrNotFound
+	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Wrong response status: %s", resp.Status)
+		return nil, fmt.Errorf("wrong response status: %s", resp.Status)
 	}
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)

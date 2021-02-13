@@ -84,7 +84,7 @@ func readWords() ([]string, error) {
 			return words, nil
 		}
 		if err != nil {
-			return nil, fmt.Errorf("Cannot read words: %w", err)
+			return nil, fmt.Errorf("cannot read words: %w", err)
 		}
 		words = append(words, strings.TrimSpace(word))
 	}

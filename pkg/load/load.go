@@ -48,7 +48,7 @@ func fetchWords(l loader.Loader, concurrency int, in <-chan string, out chan<- l
 				log.Println("Fetching", word)
 				response, err := l.Load(word)
 				if err != nil {
-					log.Println(err)
+					log.Printf("Error fetching word '%s': %s", word, err)
 					continue
 				}
 				out <- loadResult{word, response}
