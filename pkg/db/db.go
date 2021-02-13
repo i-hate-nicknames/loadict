@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
-	"nvm.ga/loadict/card"
+	"nvm.ga/loadict/pkg/card"
 )
 
 const dbFile = "loadict.db"
@@ -44,4 +44,10 @@ func SaveCards(db *gorm.DB, cards []*card.Card) error {
 
 func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&card.Card{})
+}
+
+func GetDB() *gorm.DB {
+	db := Connect()
+	Migrate(db)
+	return db
 }

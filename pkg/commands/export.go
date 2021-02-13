@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"encoding/csv"
@@ -7,8 +7,26 @@ import (
 	"os"
 
 	"github.com/jinzhu/gorm"
-	"nvm.ga/loadict/db"
+	"github.com/spf13/cobra"
+	"nvm.ga/loadict/pkg/db"
 )
+
+const exportFile = "cards.csv"
+
+func init() {
+	rootCmd.AddCommand(exportCmd)
+	exportCmd.PersistentFlags().IntVarP(&exportNum, "number", "n", 10, "number of entries to export")
+}
+
+var exportNum int
+
+var exportCmd = &cobra.Command{
+	Use:   "export",
+	Short: "export cards to an anki deck",
+	Run: func(cmd *cobra.Command, args []string) {
+		exportCards(exportNum, db.GetDB())
+	},
+}
 
 // Export at most num cards from the db into .csv file, ready
 // to be imported by anki

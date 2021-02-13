@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"bufio"
@@ -10,10 +10,23 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"nvm.ga/loadict/card"
-	"nvm.ga/loadict/db"
-	"nvm.ga/loadict/fetch"
+	"github.com/spf13/cobra"
+	"nvm.ga/loadict/pkg/card"
+	"nvm.ga/loadict/pkg/db"
+	"nvm.ga/loadict/pkg/fetch"
 )
+
+func init() {
+	rootCmd.AddCommand(loadCmd)
+}
+
+var loadCmd = &cobra.Command{
+	Use:   "load",
+	Short: "load and process words for later export",
+	Run: func(cmd *cobra.Command, args []string) {
+		loadWords(db.GetDB())
+	},
+}
 
 // loadWords takes list of words from stdin, each word on its own line,
 // loads definitions of these words using dictionary API, generates

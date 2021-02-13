@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"nvm.ga/loadict/card"
+	"nvm.ga/loadict/pkg/card"
 )
 
 const concurrentFetches = 10
