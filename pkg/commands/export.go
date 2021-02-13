@@ -24,7 +24,14 @@ var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "export cards to an anki deck",
 	Run: func(cmd *cobra.Command, args []string) {
-		exportCards(exportNum, db.GetDB())
+		db, err := db.GetDB()
+		if err != nil {
+			log.Fatalf("cannot connect to db: %s", err)
+		}
+		err = exportCards(exportNum, db)
+		if err != nil {
+			log.Fatalf("cannot export cards: %s", err)
+		}
 	},
 }
 
@@ -32,28 +39,32 @@ var exportCmd = &cobra.Command{
 // to be imported by anki
 // Exported cards will be marked as such in the db and won't be
 // exported in future
-func exportCards(num int, conn *gorm.DB) {
+func exportCards(num int, conn *gorm.DB) error {
 	file, err := os.Create(exportFile)
 	if err != nil {
-		log.Fatal("Cannot create file")
+		return err
 	}
 
 	writer := csv.NewWriter(file)
 
-	cards := db.LoadCards(conn, num)
+	cards, err := db.LoadCards(conn, num)
+	if err != nil {
+		return err
+	}
 
 	if len(cards) == 0 {
-		log.Fatal("There are no cards to be exported: load more words")
+		log.Println("There are no cards to be exported: load more words")
+		return nil
 	}
 
 	fmt.Printf("Exporting %d words to %s\n", len(cards), exportFile)
 	for _, card := range cards {
 		err := writer.Write([]string{card.Word, card.Back})
 		if err != nil {
-			log.Println(err)
+			return err
 		}
 		card.Exported = true
 	}
 	writer.Flush()
-	db.SaveCards(conn, cards)
+	return db.SaveCards(conn, cards)
 }

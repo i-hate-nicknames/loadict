@@ -24,33 +24,47 @@ var loadCmd = &cobra.Command{
 	Use:   "load",
 	Short: "load and process words for later export",
 	Run: func(cmd *cobra.Command, args []string) {
-		loadWords(db.GetDB())
+		db, err := db.GetDB()
+		if err != nil {
+			log.Fatalf("cannot connect to db: %s", err)
+		}
+		err = loadWords(db)
+		if err != nil {
+			log.Fatalf("cannot load words: %s", err)
+		}
 	},
 }
 
 // loadWords takes list of words from stdin, each word on its own line,
 // loads definitions of these words using dictionary API, generates
 // html card body using response data and saves these cards to the db
-func loadWords(conn *gorm.DB) {
+func loadWords(conn *gorm.DB) error {
 
 	fmt.Println("loading words")
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		return fmt.Errorf("error loading env file: %w", err)
 	}
 	appID, appKey := os.Getenv("APP_ID"), os.Getenv("APP_KEY")
 	if appID == "" || appKey == "" {
-		log.Fatal("Provide app id and app key in .env file")
+		return fmt.Errorf("app id or app key is not specified in env file")
 	}
 
-	words := readWords()
+	words, err := readWords()
+	if err != nil {
+		return err
+	}
 	fetcher := fetch.MakeFetcher(appID, appKey)
-	existingCards := db.LoadCardsByWords(conn, words)
+	existingCards, err := db.LoadCardsByWords(conn, words)
+	if err != nil {
+		return err
+	}
 
 	wordsToFetch := filterExisting(words, existingCards)
 
 	if len(wordsToFetch) == 0 {
-		log.Fatal("All the words are already loaded")
+		log.Println("All the words are already loaded")
+		return nil
 	}
 
 	log.Println("Loading the following words:", wordsToFetch)
@@ -58,22 +72,19 @@ func loadWords(conn *gorm.DB) {
 
 	fmt.Printf("Fetched %d cards!\n", len(cards))
 
-	err = db.SaveCards(conn, cards)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return db.SaveCards(conn, cards)
 }
 
-func readWords() []string {
+func readWords() ([]string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	words := make([]string, 0)
 	for {
 		word, err := reader.ReadString('\n')
 		if err == io.EOF {
-			return words
+			return words, nil
 		}
 		if err != nil {
-			log.Fatalln("Cannot read words:", err.Error())
+			return nil, fmt.Errorf("Cannot read words: %w", err)
 		}
 		words = append(words, strings.TrimSpace(word))
 	}
