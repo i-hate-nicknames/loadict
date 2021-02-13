@@ -13,7 +13,8 @@ import (
 	"github.com/spf13/cobra"
 	"nvm.ga/loadict/pkg/card"
 	"nvm.ga/loadict/pkg/db"
-	"nvm.ga/loadict/pkg/fetch"
+	"nvm.ga/loadict/pkg/load"
+	"nvm.ga/loadict/pkg/load/oxford"
 )
 
 func init() {
@@ -54,7 +55,6 @@ func loadWords(conn *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	fetcher := fetch.MakeFetcher(appID, appKey)
 	existingCards, err := db.LoadCardsByWords(conn, words)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func loadWords(conn *gorm.DB) error {
 	}
 
 	log.Println("Loading the following words:", wordsToFetch)
-	cards := fetch.FetchCards(wordsToFetch, fetcher)
+	cards := load.FetchCards(wordsToFetch, oxford.Loader{AppID: appID, AppKey: appKey})
 
 	fmt.Printf("Fetched %d cards!\n", len(cards))
 

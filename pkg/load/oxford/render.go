@@ -1,4 +1,4 @@
-package fetch
+package oxford
 
 import (
 	"bytes"

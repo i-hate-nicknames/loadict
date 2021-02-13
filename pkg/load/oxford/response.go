@@ -1,4 +1,4 @@
-package fetch
+package oxford
 
 type Response struct {
 	Results []*Result
