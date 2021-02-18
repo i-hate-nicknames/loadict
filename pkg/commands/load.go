@@ -3,7 +3,6 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strings"
@@ -76,18 +75,12 @@ func loadWords(conn *gorm.DB) error {
 }
 
 func readWords() ([]string, error) {
-	reader := bufio.NewReader(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	words := make([]string, 0)
-	for {
-		word, err := reader.ReadString('\n')
-		if err == io.EOF {
-			return words, nil
-		}
-		if err != nil {
-			return nil, fmt.Errorf("cannot read words: %w", err)
-		}
-		words = append(words, strings.TrimSpace(word))
+	for scanner.Scan() {
+		words = append(words, strings.TrimSpace(scanner.Text()))
 	}
+	return words, scanner.Err()
 }
 
 func filterExisting(words []string, existing []*card.Card) []string {
